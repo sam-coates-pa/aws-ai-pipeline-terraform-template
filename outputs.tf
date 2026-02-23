@@ -1,15 +1,7 @@
-output "raw_ingest_bucket" {
-  value = aws_s3_bucket.raw_ingest.bucket
+output "notebook_instance_name" {
+  value = aws_sagemaker_notebook_instance.notebook.name
 }
 
-output "raw_ingest_bucket_arn" {
-  value = aws_s3_bucket.raw_ingest.arn
-}
-
-output "processed_bucket" {
-  value = aws_s3_bucket.processed.bucket
-}
-
-output "processed_bucket_arn" {
-  value = aws_s3_bucket.processed.arn
+output "sagemaker_execution_role_arn" {
+  value = aws_iam_role.sagemaker_execution_role.arn
 }
