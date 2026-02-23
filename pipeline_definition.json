@@ -1,0 +1,56 @@
+{
+  "Comment": "Fraud Detection and Prediction Pipeline",
+  "StartAt": "Trigger Glue Job",
+  "States": {
+    "Trigger Glue Job": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::glue:startJobRun.sync",
+      "Parameters": {
+        "JobName": "fraud-glue-etl-job"
+      },
+      "Next": "Train Model in SageMaker"
+    },
+    "Train Model in SageMaker": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sagemaker:createTrainingJob.sync",
+      "Parameters": {
+        "TrainingJobName.$": "$.trainingJobName",
+        "AlgorithmSpecification": {
+          "TrainingImage": "382416733822.dkr.ecr.eu-west-2.amazonaws.com/xgboost:latest",
+          "TrainingInputMode": "File"
+        },
+        "InputDataConfig": [],
+        "OutputDataConfig": {
+          "S3OutputPath": "s3://fraud-dev-s3-processed/model/output"
+        },
+        "ResourceConfig": {
+          "InstanceType": "ml.t3.medium",
+          "InstanceCount": 1,
+          "VolumeSizeInGB": 10
+        },
+        "RoleArn": "arn:aws:iam::654654416089:role/fraud-dev-sagemaker-execution-role",
+        "StoppingCondition": {
+          "MaxRuntimeInSeconds": 3600
+        }
+      },
+      "Next": "Deploy Model"
+    },
+    "Deploy Model": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:eu-west-2:654654416089:function:fraud-dev-deploy-model",
+      "Next": "Score Fraud Predictions"
+    },
+    "Score Fraud Predictions": {
+      "Type": "Task",
+      "Resource": "arn:aws:lambda:eu-west-2:654654416089:function:fraud-dev-predict-fraud",
+      "Next": "Prepare Dashboard Data"
+    },
+    "Prepare Dashboard Data": {
+      "Type": "Pass",
+      "Result": {
+        "Message": "Data written to predictions/ for Athena and QuickSight"
+      },
+      "End": true
+    }
+  }
+}

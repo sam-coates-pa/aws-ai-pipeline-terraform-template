@@ -1,7 +1,7 @@
-output "lambda_function_name" {
-  value = aws_lambda_function.this.function_name
+output "pipeline_arn" {
+  value = aws_sfn_state_machine.pipeline.arn
 }
 
-output "lambda_arn" {
-  value = aws_lambda_function.this.arn
+output "step_function_role_arn" {
+  value = var.step_function_role_arn
 }
