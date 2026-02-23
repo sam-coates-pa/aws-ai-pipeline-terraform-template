@@ -3,7 +3,7 @@
 This repository contains a Proof‑of‑Concept (PoC) **AI‑enabled fraud detection pipeline** deployed on AWS using **Terraform**.  
 The solution demonstrates an end‑to‑end machine learning workflow for **credit card fraud detection**, using a synthetic dataset sourced from Kaggle.
 
-Source Data: [Link Text](https://www.kaggle.com/datasets/ealaxi/paysim1?resource=download)
+Source Data: [Click Here](https://www.kaggle.com/datasets/ealaxi/paysim1?resource=download)
 ---
 
 ## Overview
