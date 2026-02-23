@@ -1,3 +1,3 @@
 variable "project" {}
 variable "env" {}
-variable "step_function_role_arn" {}
+variable "glue_script_path" {}

@@ -1,7 +1,7 @@
-output "pipeline_arn" {
-  value = aws_sfn_state_machine.pipeline.arn
+output "glue_job_name" {
+  value = aws_glue_job.etl_job.name
 }
 
-output "step_function_role_arn" {
-  value = var.step_function_role_arn
+output "glue_role_arn" {
+  value = aws_iam_role.glue_service_role.arn
 }
