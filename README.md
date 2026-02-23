@@ -33,6 +33,8 @@ The design is derived from the accompanying architecture slide deck, showing a m
 - Monitoring with **CloudWatch**
 - SQL‑style interrogation using **Athena**
 
+  
+
 ```mermaid
 flowchart LR
 
@@ -93,6 +95,7 @@ flowchart LR
     J -.-> D
     J -.-> E
 ```    
+
 ---
 
 ## Architecture Overview
