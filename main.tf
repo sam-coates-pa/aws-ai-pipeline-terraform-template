@@ -1,86 +1,162 @@
+#main.tf
 
-# --- IAM Roles Module: Lambda + Step Functions ---
-module "iam" {
- source                  = "../../modules/iam"
- lambda_role_name        = "${var.project}-${var.env}-lambda-exec"
- step_function_role_name = "${var.project}-${var.env}-stepfunctions-exec"
- lambda_exec_role_arn = module.iam.lambda_role_arn
- env     = var.env
+resource "aws_s3_bucket" "raw_ingest" {
+  bucket = "fraud-dev-s3-raw-ingest"
+  force_destroy = true
+  tags = {
+    Environment = var.env
+    Project     = var.project
+  }
 }
 
-# --- S3 Buckets: raw + processed data storage ---
-module "s3" {
- source = "../../modules/s3"
- project = var.project
- env     = var.env
+resource "aws_s3_bucket" "processed" {
+  bucket = "fraud-dev-s3-processed"
+  force_destroy = true
+  tags = {
+    Environment = var.env
+    Project     = var.project
+  }
 }
 
-# --- Glue ETL Job: data cleaning + feature engineering ---
-module "glue" {
- source           = "../../modules/glue"
- project          = var.project
- env              = var.env
- glue_script_path = "s3://${module.s3.processed_bucket}/scripts/glue/glue_etl.py"
+resource "aws_s3_object" "init_train" {
+  bucket = aws_s3_bucket.processed.id
+  key    = "processed/train/.keep"
+  content = ""
 }
 
-# --- SageMaker Notebook Setup ---
-module "sagemaker" {
- source                = "../../modules/sagemaker"
- project               = var.project
- env                   = var.env
- lifecycle_config_name = var.lifecycle_config_name
- s3_processed_arn      = module.s3.processed_bucket_arn
+resource "aws_s3_object" "init_validation" {
+  bucket = aws_s3_bucket.processed.id
+  key    = "processed/validation/.keep"
+  content = ""
 }
 
-# --- Lambda Function: triggers Step Function on new S3 file ---
-module "lambda_sfn_starter" {
- source               = "../../modules/lambda"
- project              = var.project
- env                  = var.env
- function_name_suffix = "sfn-starter"
- zip_path             = "lambda/sfn_starter.zip"
- step_function_arn    = module.stepfunctions.pipeline_arn
- s3_raw_arn           = module.s3.raw_ingest_bucket_arn
- s3_raw_id            = module.s3.raw_ingest_bucket
- lambda_exec_role_arn = module.iam.lambda_role_arn
+resource "aws_s3_object" "init_model_output" {
+  bucket = aws_s3_bucket.processed.id
+  key    = "model/output/.keep"
+  content = ""
 }
 
-# --- Lambda Function: deploys SageMaker model after training ---
-module "lambda_model_deployer" {
- source               = "../../modules/lambda"
- project              = var.project
- env                  = var.env
- function_name_suffix = "deploy-model"
- zip_path             = "lambda/deploy_model.zip"
- step_function_arn    = module.stepfunctions.pipeline_arn
- s3_processed_arn     = module.s3.processed_bucket_arn
- s3_processed_id      = module.s3.processed_bucket
- lambda_exec_role_arn = module.iam.lambda_role_arn
+resource "aws_s3_object" "init_predictions" {
+  bucket = aws_s3_bucket.processed.id
+  key    = "predictions/.keep"
+  content = ""
 }
 
-# --- Lambda Function: invokes SageMaker endpoint for fraud scoring ---
-module "lambda_fraud_predictor" {
- source               = "../../modules/lambda"
- project              = var.project
- env                  = var.env
- function_name_suffix = "predict-fraud"
- zip_path             = "lambda/predict_fraud.zip"
- step_function_arn    = module.stepfunctions.pipeline_arn
- s3_processed_arn     = module.s3.processed_bucket_arn
- s3_processed_id      = module.s3.processed_bucket
- lambda_exec_role_arn = module.iam.lambda_role_arn
+resource "aws_iam_role" "sagemaker_execution_role" {
+  name = "${var.project}-${var.env}-sagemaker-role"
+  assume_role_policy = data.aws_iam_policy_document.sagemaker_assume_role.json
 }
 
-# --- Step Functions: pipeline orchestration ---
-module "stepfunctions" {
-  source                 = "../../modules/stepfunctions"
-  project                = var.project
-  env                    = var.env
-  step_function_role_arn = module.iam.step_function_role_arn
+data "aws_iam_policy_document" "sagemaker_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["sagemaker.amazonaws.com"]
+    }
+  }
 }
 
-# --- Output the Step Function ARN ---
-output "step_function_arn" {
-  description = "ARN of the deployed Step Functions state machine"
-  value       = module.stepfunctions.step_function_role_arn
+resource "aws_iam_role_policy" "sagemaker_access_policy" {
+  name   = "${var.project}-${var.env}-sagemaker-policy"
+  role   = aws_iam_role.sagemaker_execution_role.id
+  policy = data.aws_iam_policy_document.sagemaker_access.json
+}
+
+data "aws_iam_policy_document" "sagemaker_access" {
+  statement {
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:ListBucket"
+    ]
+    resources = [
+      aws_s3_bucket.processed.arn,
+      "${aws_s3_bucket.processed.arn}/*"
+    ]
+  }
+
+  statement {
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = ["arn:aws:logs:*:*:*"]
+  }
+
+  statement {
+    actions = [
+      "cloudwatch:PutMetricData"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_sagemaker_notebook_instance" "notebook" {
+  name                 = "${var.project}-${var.env}-sagemaker-notebook"
+  instance_type        = "ml.t3.medium"
+  role_arn             = aws_iam_role.sagemaker_execution_role.arn
+  lifecycle_config_name = var.lifecycle_config_name
+  tags = {
+    Project     = var.project
+    Environment = var.env
+  }
+}
+
+resource "aws_lambda_function" "sfn_starter" {
+  function_name = "${var.project}-${var.env}-sfn-starter"
+  role          = aws_iam_role.lambda_exec.arn
+  handler       = "lambda_function.lambda_handler"
+  runtime       = "python3.10"
+
+  filename         = "lambda/sfn_starter.zip"
+  source_code_hash = filebase64sha256("lambda/sfn_starter.zip")
+
+  environment {
+    variables = {
+      STEP_FUNCTION_ARN = aws_sfn_state_machine.pipeline.arn
+    }
+  }
+
+  tags = {
+    Environment = var.env
+    Project     = var.project
+  }
+}
+
+resource "aws_iam_role_policy" "lambda_sfn_access" {
+  name = "${var.project}-${var.env}-lambda-sfn"
+  role = aws_iam_role.lambda_exec.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action   = "states:StartExecution",
+        Effect   = "Allow",
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_lambda_permission" "allow_s3_to_start_sfn" {
+  statement_id  = "AllowExecutionFromS3"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.sfn_starter.function_name
+  principal     = "s3.amazonaws.com"
+  source_arn    = aws_s3_bucket.raw_ingest.arn
+}
+
+resource "aws_s3_bucket_notification" "sfn_trigger" {
+  bucket = aws_s3_bucket.raw_ingest.id
+
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.sfn_starter.arn
+    events              = ["s3:ObjectCreated:*"]
+    filter_suffix       = ".csv"
+  }
+
+  depends_on = [aws_lambda_permission.allow_s3_to_start_sfn]
 }
