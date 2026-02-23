@@ -33,6 +33,66 @@ The design is derived from the accompanying architecture slide deck, showing a m
 - Monitoring with **CloudWatch**
 - SQL‑style interrogation using **Athena**
 
+```mermaid
+flowchart LR
+
+    %% STYLE DEFINITIONS
+    classDef s3 fill:#1DB954,stroke:#0e512c,stroke-width:1px,color:white;
+    classDef glue fill:#7a2ff7,stroke:#3d1780,stroke-width:1px,color:white;
+    classDef bucket fill:#4CAF50,stroke:#2d702f,stroke-width:1px,color:white;
+    classDef sagemaker fill:#0FB7A4,stroke:#0a6e63,stroke-width:1px,color:white;
+    classDef lambda fill:#f77f00,stroke:#a65500,stroke-width:1px,color:white;
+    classDef stepfn fill:#cc0066,stroke:#7a003d,stroke-width:1px,color:white;
+    classDef cloudwatch fill:#ff3366,stroke:#991f3d,stroke-width:1px,color:white;
+    classDef athena fill:#6b4eff,stroke:#3b2bb3,stroke-width:1px,color:white;
+    classDef quicksight fill:#b84dff,stroke:#6f2a99,stroke-width:1px,color:white;
+
+    %% NODES
+
+    A["S3 Landing Bucket<br><br><b>Raw Data Ingestion</b><br>(Triggering the Pipeline)"]:::s3
+
+    B[Glue Jobs<br><br><b>Data Cleaning & Transformation</b>]:::glue
+
+    subgraph C[S3 Processed Bucket]
+        C1[processed/train]:::bucket
+        C2[processed/validation]:::bucket
+        C3[model/output]:::bucket
+        C4[predictions]:::bucket
+    end
+
+    D[SageMaker AI Model<br><br><b>Fraud Detection & Prediction</b>]:::sagemaker
+    E[Deploy Trained Model]:::lambda
+    F[Fraud Prediction Check]:::lambda
+
+    G[Athena]:::athena
+    H[QuickSight Dashboard<br><br>Displays analysis on a Dashboard]:::quicksight
+
+    I[Step Functions<br><br><b>Orchestrate Workflow for Automation</b>]:::stepfn
+    J[CloudWatch<br><br><b>Monitor Pipeline Health</b>]:::cloudwatch
+
+    %% FLOWS
+    A --> B
+    B -->|Starts SageMaker training| C
+    C1 --> D
+    C2 --> D
+    D --> E
+    E --> F
+    F --> C4
+
+    C3 --> G
+    C4 --> G
+    G --> H
+
+    %% ORCHESTRATION & MONITORING
+    I -.-> A
+    I -.-> B
+    I -.-> D
+    I -.-> E
+    I -.-> F
+    J -.-> I
+    J -.-> D
+    J -.-> E
+```    
 ---
 
 ## Architecture Overview
