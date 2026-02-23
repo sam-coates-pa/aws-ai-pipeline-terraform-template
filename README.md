@@ -5,7 +5,7 @@ The solution demonstrates an end‑to‑end machine learning workflow for **cred
 
 ---
 
-## 📌 Overview
+## Overview
 
 The pipeline automates ingestion, transformation, model training, inference, and analytics.  
 The design is derived from the accompanying architecture slide deck, showing a modular cloud‑native ML flow using AWS services. 
@@ -26,7 +26,7 @@ The design is derived from the accompanying architecture slide deck, showing a m
 
 ---
 
-## 🚀 Architecture Overview
+## Architecture Overview
 
 ### Core AWS Components
 
@@ -67,7 +67,7 @@ These cover “Displays analysis on a Dashboard” and “Athena” items.
 
 ---
 
-## 🧠 Machine Learning Elements
+## Machine Learning Elements
 
 The solution uses **synthetic Kaggle credit card transaction data** for fraud detection experiments.
 
@@ -82,7 +82,7 @@ This reflects the SageMaker training and prediction flow in the slide deck.
 
 ---
 
-## 📦 Infrastructure as Code (Terraform)
+## Infrastructure as Code (Terraform)
 
 Terraform is used to provision the entire stack, including:
 - S3 buckets  
@@ -96,8 +96,9 @@ Terraform is used to provision the entire stack, including:
 
 This enables reproducibility and provides a template for future AWS‑based AI pipelines.
 
+---
 
-## ▶️ Getting Started
+## Getting Started
 
 ### Prerequisites
 - Terraform CLI  
@@ -119,6 +120,8 @@ terraform apply
 - Predictions are stored in S3.
 - Dashboard updates in QuickSight.
 
+---
+
 ## Dashboards & Analytics
 QuickSight provides:
 
@@ -128,6 +131,8 @@ QuickSight provides:
 - Model performance graphs
 
 Athena allows flexible ad‑hoc interrogation of model outputs and processed datasets.
+
+---
 
 ## Extending the Template
 This pattern can be reused across:
