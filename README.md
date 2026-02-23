@@ -115,6 +115,11 @@ Based on the “Data Cleaning & Transformation” stage.
 
 #### **S3 Processed Buckets**
 Output folder structure:
+processed/
+├── train/
+├── validation/
+├── model/
+└── predictions/
 
 #### **SageMaker Training & Inference**
 Supports:  
