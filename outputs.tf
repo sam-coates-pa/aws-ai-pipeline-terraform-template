@@ -1,7 +1,7 @@
-output "lambda_role_arn" {
-  value = aws_iam_role.lambda_role.arn
+output "lambda_function_name" {
+  value = aws_lambda_function.this.function_name
 }
 
-output "step_function_role_arn" {
-  value = aws_iam_role.step_function_role.arn
+output "lambda_arn" {
+  value = aws_lambda_function.this.arn
 }
