@@ -1,0 +1,11 @@
+project               = "fraud"
+env                   = "test"
+region                = "eu-west-2"
+s3_bucket_raw         = "fraud-test-s3-raw-ingest"
+s3_bucket_processed   = "fraud-test-s3-processed"
+lifecycle_config_name = null
+glue_script_path      = "s3://fraud-test-s3-processed/scripts/glue_etl.py"
+s3_processed_arn      = "arn:aws:s3:::fraud-test-s3-processed"
+step_function_arn     = "arn:aws:states:eu-west-2:123456789012:stateMachine:fraud-test-fraud-pipeline"
+s3_raw_arn            = "arn:aws:s3:::fraud-test-s3-raw-ingest"
+s3_raw_id             = "fraud-test-s3-raw-ingest"
