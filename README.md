@@ -1,10 +1,6 @@
 # Fraud Detection Pipeline – AWS + Terraform
 
-This repository contains a Proof‑of‑Concept (PoC) **AI‑enabled fraud detection pipeline** deployed on AWS using **Terraform**.  
-The solution demonstrates an end‑to‑end machine learning workflow for **credit card fraud detection**, using a synthetic dataset sourced from Kaggle.
-
 This repository contains a Proof‑of‑Concept (PoC) **AI‑enabled fraud detection pipeline** built on AWS using **Terraform**. It demonstrates a complete, automated machine learning workflow for credit card fraud detection using synthetic Kaggle data, and serves as a reusable template for rapid delivery of AI‑driven data pipelines.
-
 
 Key Benefits for Our Data Engineering Sub‑Capability
 
