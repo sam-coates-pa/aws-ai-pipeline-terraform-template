@@ -57,8 +57,10 @@ terraform init
 
 You should see:
 ✅ Provider plugins installed
+
 ✅ Backend configuration (if using S3 backend)
-✅ Initialization complete
+
+✅ Initialisation complete
 
 ## 5. Validate the Configuration
 Check the syntax:
