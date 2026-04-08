@@ -11,7 +11,7 @@ Key Benefits for Our Data Engineering Sub‑Capability
 - Adaptable to multiple use cases – easily repurposed for anomaly detection, risk scoring, and other domain‑specific AI workloads.
 - Enhances client confidence – demonstrates our technical maturity and ability to deliver AI pipelines quickly and reliably.
 
-Source Data: [Click Here](https://www.kaggle.com/datasets/ealaxi/paysim1?resource=download)](https://www.kaggle.com/datasets/goyaladi/fraud-detection-dataset/data)
+Source Data: [Click Here](https://www.kaggle.com/datasets/goyaladi/fraud-detection-dataset/data)
 ---
 
 ## Overview
